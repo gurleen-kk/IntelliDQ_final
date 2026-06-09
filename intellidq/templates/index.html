@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IntelliDQ — AI-Powered Data Quality</title>
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0f1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --border: #1e2d45;
+  --accent: #00d9ff;
+  --accent2: #7c3aed;
+  --accent3: #10b981;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --card: #131e30;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── NOISE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* ── HEADER ── */
+header {
+  position: relative; z-index: 10;
+  padding: 20px 40px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+  background: rgba(11,15,26,0.95);
+  backdrop-filter: blur(12px);
+}
+.logo-mark {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: 16px; color: #000;
+}
+.brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; }
+.brand span { color: var(--accent); }
+.tagline { margin-left: auto; font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+.ms-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 20px;
+  border: 1px solid rgba(0,217,255,0.2);
+  background: rgba(0,217,255,0.05);
+  font-size: 11px; color: var(--accent);
+  font-family: 'DM Mono', monospace;
+}
+.ms-badge::before { content: '⬡'; font-size: 13px; }
+
+/* ── MAIN ── */
+main { position: relative; z-index: 1; max-width: 1300px; margin: 0 auto; padding: 40px 32px; }
+
+/* ── HERO ── */
+.hero {
+  text-align: center;
+  padding: 60px 20px 48px;
+}
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 800; line-height: 1.05;
+  letter-spacing: -2px;
+  background: linear-gradient(135deg, #fff 30%, var(--accent) 70%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+}
+.hero p { color: var(--muted); font-size: 17px; max-width: 520px; margin: 0 auto 40px; }
+
+/* ── FRAMEWORK PILLS ── */
+.framework-pills { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 48px; }
+.pill {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px;
+  font-family: 'DM Mono', monospace; font-weight: 500;
+  border: 1px solid; letter-spacing: 0.3px;
+}
+.pill.blue { color: var(--accent); border-color: rgba(0,217,255,0.3); background: rgba(0,217,255,0.08); }
+.pill.purple { color: #a78bfa; border-color: rgba(124,58,237,0.3); background: rgba(124,58,237,0.08); }
+.pill.green { color: var(--accent3); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08); }
+.pill.amber { color: var(--warn); border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.08); }
+
+/* ── UPLOAD ZONE ── */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 20px;
+  padding: 60px 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--card);
+  position: relative; overflow: hidden;
+  max-width: 640px; margin: 0 auto;
+}
+.upload-zone::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(0,217,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(0,217,255,0.04);
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(0,217,255,0.12);
+}
+.upload-icon {
+  font-size: 48px; margin-bottom: 16px;
+  display: block; filter: drop-shadow(0 0 12px rgba(0,217,255,0.4));
+}
+.upload-zone h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.upload-zone p { color: var(--muted); font-size: 14px; }
+.upload-zone p strong { color: var(--accent); }
+#file-input { display: none; }
+.upload-btn {
+  display: inline-block; margin-top: 20px;
+  padding: 10px 28px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #0099cc);
+  color: #000; font-weight: 700; font-size: 14px;
+  font-family: 'Syne', sans-serif; cursor: pointer;
+  border: none; transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.upload-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,217,255,0.4); }
+
+/* ── LOADING ── */
+#loading {
+  display: none; text-align: center; padding: 80px 20px;
+}
+.spinner-ring {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto 20px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-steps { display: flex; flex-direction: column; gap: 8px; align-items: center; margin-top: 16px; }
+.step { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); opacity: 0; animation: fadeStep 0.5s ease forwards; }
+.step.active { color: var(--accent); }
+@keyframes fadeStep { to { opacity: 1; } }
+
+/* ── RESULTS ── */
+#results { display: none; }
+
+/* ── SCORE BANNER ── */
+.score-banner {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 40px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center; gap: 40px;
+  margin-bottom: 32px;
+  position: relative; overflow: hidden;
+}
+.score-banner::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+}
+.score-circle {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  position: relative;
+}
+.score-circle svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+.score-num { font-size: 28px; font-weight: 800; line-height: 1; z-index: 1; }
+.score-lbl { font-size: 10px; color: var(--muted); z-index: 1; letter-spacing: 1px; text-transform: uppercase; }
+.score-meta h2 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.score-meta p { color: var(--muted); font-size: 14px; }
+.score-meta .filename { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); margin-top: 4px; }
+.score-stats { display: flex; gap: 24px; }
+.score-stat { text-align: center; }
+.score-stat .val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+.score-stat .key { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+
+/* ── DQ DIMENSION GRID ── */
+.dimension-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.dim-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 22px;
+  transition: border-color 0.2s;
+}
+.dim-card:hover { border-color: rgba(0,217,255,0.3); }
+.dim-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.dim-icon { font-size: 20px; }
+.dim-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; }
+.dim-score-row { display: flex; align-items: center; gap: 10px; }
+.dim-score-num { font-family: 'DM Mono', monospace; font-size: 24px; font-weight: 500; }
+.dim-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.dim-bar { height: 100%; border-radius: 3px; transition: width 1s ease; }
+.dim-detail { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.tab {
+  padding: 10px 20px; border-radius: 10px 10px 0 0;
+  cursor: pointer; font-size: 13px; font-weight: 500;
+  color: var(--muted); border: 1px solid transparent;
+  border-bottom: none; transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.tab:hover { color: var(--text); background: var(--surface); }
+.tab.active {
+  color: var(--accent); background: var(--card);
+  border-color: var(--border); border-bottom-color: var(--card);
+  margin-bottom: -1px;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── TABLE ── */
+.data-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  background: var(--surface2);
+  padding: 12px 16px; text-align: left;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px;
+  border-bottom: 1px solid var(--border);
+}
+td { padding: 11px 16px; border-bottom: 1px solid rgba(30,45,69,0.5); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(0,217,255,0.02); }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 6px;
+  font-size: 11px; font-weight: 600; font-family: 'DM Mono', monospace;
+}
+.badge.good { background: rgba(16,185,129,0.15); color: var(--accent3); }
+.badge.warn { background: rgba(245,158,11,0.15); color: var(--warn); }
+.badge.bad { background: rgba(239,68,68,0.15); color: var(--danger); }
+.bar-cell { display: flex; align-items: center; gap: 8px; }
+.mini-bar { width: 60px; height: 4px; background: var(--border); border-radius: 2px; flex-shrink: 0; }
+.mini-fill { height: 100%; border-radius: 2px; }
+
+/* ── ANOMALY SECTION ── */
+.anomaly-header {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 20px;
+}
+.anomaly-pill {
+  padding: 6px 16px; border-radius: 20px;
+  background: rgba(239,68,68,0.1); color: var(--danger);
+  border: 1px solid rgba(239,68,68,0.3);
+  font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600;
+}
+.anomaly-info { font-size: 13px; color: var(--muted); }
+
+/* ── ISSUES LIST ── */
+.issues-list { display: flex; flex-direction: column; gap: 8px; }
+.issue-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 16px; border-radius: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+}
+.issue-col {
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  color: var(--accent); white-space: nowrap;
+  min-width: 120px;
+}
+.issue-desc { font-size: 13px; color: var(--muted); }
+
+/* ── AI SUMMARY SECTION ── */
+.ai-summary-box {
+  background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(0,217,255,0.05));
+  border: 1px solid rgba(124,58,237,0.25);
+  border-radius: 16px; padding: 28px 32px;
+  margin-bottom: 24px; position: relative; overflow: hidden;
+}
+.ai-summary-box::before {
+  content: '';
+  position: absolute; top: 0; left: 0; bottom: 0; width: 4px;
+  background: linear-gradient(180deg, var(--accent2), var(--accent));
+}
+.ai-summary-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+}
+.ai-chip {
+  padding: 3px 10px; border-radius: 6px;
+  background: rgba(124,58,237,0.2); color: #a78bfa;
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.foundry-chip {
+  padding: 3px 10px; border-radius: 6px;
+  background: rgba(0,217,255,0.08); color: var(--accent);
+  font-family: 'DM Mono', monospace; font-size: 11px;
+}
+.ai-text { font-size: 14px; line-height: 1.8; color: #cbd5e1; }
+.ai-text p { margin-bottom: 8px; }
+.ai-text p:last-child { margin-bottom: 0; }
+.ai-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.action-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  font-size: 12px; color: var(--text);
+}
+.action-item::before { content: '→'; color: var(--accent); font-weight: 700; }
+
+/* ── EXPORT BAR ── */
+.export-bar {
+  display: flex; gap: 12px; align-items: center;
+  padding: 20px 0; border-top: 1px solid var(--border);
+  margin-top: 32px;
+}
+.export-bar span { font-size: 13px; color: var(--muted); margin-right: 4px; }
+.btn {
+  padding: 9px 20px; border-radius: 9px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  border: none; transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+}
+.btn-outline {
+  background: transparent; border: 1px solid var(--border); color: var(--text);
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,217,255,0.35); }
+.btn-reset { margin-left: auto; background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.btn-reset:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border); padding: 20px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
+.footer-right { display: flex; gap: 20px; }
+.gov-badge {
+  padding: 3px 10px; border-radius: 4px;
+  border: 1px solid rgba(100,116,139,0.3);
+  font-size: 10px; letter-spacing: 0.5px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">IQ</div>
+  <div class="brand">Intelli<span>DQ</span></div>
+  <div class="tagline">v1.0 · Capgemini DTSP</div>
+  <div class="ms-badge">Microsoft Foundry · AI Layer</div>
+</header>
+
+<main>
+
+  <!-- HERO + UPLOAD -->
+  <div id="upload-section">
+    <div class="hero">
+      <h1>AI-Powered<br>Data Quality</h1>
+      <p>Upload your dataset. IntelliDQ automatically checks quality across the Government Data Quality Framework dimensions.</p>
+      <div class="framework-pills">
+        <span class="pill blue">Accuracy</span>
+        <span class="pill purple">Completeness</span>
+        <span class="pill green">Consistency</span>
+        <span class="pill amber">Timeliness</span>
+        <span class="pill blue">Uniqueness</span>
+        <span class="pill purple">Validity</span>
+      </div>
+    </div>
+
+    <div class="upload-zone" id="drop-zone">
+      <span class="upload-icon">📊</span>
+      <h3>Drop your dataset here</h3>
+      <p>Supports <strong>CSV</strong> and <strong>Excel (.xlsx/.xls)</strong> files up to 50MB</p>
+      <input type="file" id="file-input" accept=".csv,.xlsx,.xls">
+      <button class="upload-btn" onclick="document.getElementById('file-input').click()">Browse Files</button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading">
+    <div class="spinner-ring"></div>
+    <p style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;">Analysing Dataset</p>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">Running DQ checks across all dimensions...</p>
+    <div class="loading-steps">
+      <div class="step active" style="animation-delay:0s">→ Parsing file structure</div>
+      <div class="step" style="animation-delay:0.6s">→ Running completeness checks</div>
+      <div class="step" style="animation-delay:1.2s">→ Detecting duplicates &amp; validity issues</div>
+      <div class="step" style="animation-delay:1.8s">→ Running Isolation Forest anomaly detection</div>
+      <div class="step" style="animation-delay:2.4s">→ Generating AI summary via Microsoft Foundry</div>
+      <div class="step" style="animation-delay:3.0s">→ Building your report...</div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <!-- Score Banner -->
+    <div class="score-banner" id="score-banner">
+      <div class="score-circle" id="score-circle">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="44" fill="none" stroke="#1e2d45" stroke-width="8"/>
+          <circle cx="50" cy="50" r="44" fill="none" stroke-width="8"
+            stroke-linecap="round"
+            id="score-arc"
+            stroke-dasharray="276.46" stroke-dashoffset="276.46"/>
+        </svg>
+        <span class="score-num" id="score-num">—</span>
+        <span class="score-lbl">DQ Score</span>
+      </div>
+      <div class="score-meta">
+        <h2 id="quality-label">Analysing...</h2>
+        <p id="quality-desc"></p>
+        <div class="filename" id="filename-display"></div>
+      </div>
+      <div class="score-stats">
+        <div class="score-stat"><div class="val" id="stat-rows">—</div><div class="key">Rows</div></div>
+        <div class="score-stat"><div class="val" id="stat-cols">—</div><div class="key">Columns</div></div>
+        <div class="score-stat"><div class="val" id="stat-anomalies">—</div><div class="key">Anomalies</div></div>
+        <div class="score-stat"><div class="val" id="stat-issues">—</div><div class="key">Issues</div></div>
+      </div>
+    </div>
+
+    <!-- Dimension Cards -->
+    <div class="dimension-grid" id="dim-grid"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('overview')">Column Overview</div>
+      <div class="tab" onclick="switchTab('anomalies')">Anomaly Detection</div>
+      <div class="tab" onclick="switchTab('issues')">DQ Issues</div>
+      <div class="tab" onclick="switchTab('ai')">AI Summary</div>
+    </div>
+
+    <div id="tab-overview" class="tab-content active">
+      <div class="data-table-wrap">
+        <table id="col-table">
+          <thead>
+            <tr>
+              <th>Column</th><th>Type</th><th>Missing</th><th>Completeness</th>
+              <th>Unique</th><th>Min / Max</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="col-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-anomalies" class="tab-content">
+      <div class="anomaly-header">
+        <div class="anomaly-pill" id="anomaly-count-pill">0 anomalies</div>
+        <div class="anomaly-info" id="anomaly-info-text"></div>
+      </div>
+      <div id="anomaly-table-wrap"></div>
+    </div>
+
+    <div id="tab-issues" class="tab-content">
+      <div id="issues-container"></div>
+    </div>
+
+    <div id="tab-ai" class="tab-content">
+      <div class="ai-summary-box" id="ai-summary-box">
+        <div class="ai-summary-header">
+          <span class="ai-chip">AI INSIGHT</span>
+          <span class="foundry-chip">Microsoft Foundry</span>
+        </div>
+        <div class="ai-text" id="ai-text">Generating summary...</div>
+        <div class="ai-actions" id="ai-actions"></div>
+      </div>
+    </div>
+
+    <!-- Export Bar -->
+    <div class="export-bar">
+      <span>Export:</span>
+      <button class="btn btn-outline" id="export-csv-btn">CSV Report</button>
+      <button class="btn btn-primary" onclick="window.print()">Print / PDF</button>
+      <button class="btn btn-reset btn" onclick="resetApp()">↺ New Analysis</button>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div>IntelliDQ · Gurleen Kaur · Capgemini DTSP · 2025</div>
+  <div class="footer-right">
+    <span class="gov-badge">GOV DQ FRAMEWORK</span>
+    <span>Isolation Forest · Python · Flask · Microsoft Foundry</span>
+  </div>
+</footer>
+
+<script>
+let currentData = null;
+let currentUID = null;
+
+// ── DRAG & DROP ──
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+dropZone.addEventListener('click', e => {
+  if (e.target !== document.querySelector('.upload-btn')) fileInput.click();
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) processFile(e.target.files[0]); });
+
+function processFile(file) {
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+
+  // Animate steps
+  const steps = document.querySelectorAll('.step');
+  steps.forEach((s, i) => {
+    s.style.opacity = '0';
+    setTimeout(() => {
+      s.style.animation = 'none';
+      s.style.opacity = '0';
+      setTimeout(() => { s.style.animation = 'fadeStep 0.5s ease forwards'; }, 50);
+    }, i * 600);
+  });
+
+  const fd = new FormData();
+  fd.append('file', file);
+
+  fetch('/upload', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) { alert('Error: ' + data.error); resetApp(); return; }
+      currentData = data;
+      currentUID = data._uid;
+      setTimeout(() => renderResults(data), 3200);
+    })
+    .catch(e => { alert('Upload failed: ' + e.message); resetApp(); });
+}
+
+// ── RENDER RESULTS ──
+function renderResults(d) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+
+  // Score
+  const score = d.overall_score;
+  document.getElementById('score-num').textContent = score;
+  const arc = document.getElementById('score-arc');
+  const circumference = 276.46;
+  const offset = circumference * (1 - score / 100);
+  arc.style.strokeDashoffset = offset;
+  arc.style.stroke = scoreColor(score);
+  arc.style.transition = 'stroke-dashoffset 1.2s ease';
+
+  const label = score >= 85 ? 'Excellent Quality' : score >= 70 ? 'Good Quality' : score >= 50 ? 'Needs Attention' : 'Critical Issues';
+  const desc = score >= 85 ? 'This dataset meets high data quality standards.' :
+               score >= 70 ? 'A few issues detected — review highlighted areas.' :
+               score >= 50 ? 'Multiple quality issues require attention before use.' :
+               'Significant data quality problems detected — remediation required.';
+
+  document.getElementById('quality-label').textContent = label;
+  document.getElementById('quality-desc').textContent = desc;
+  document.getElementById('filename-display').textContent = '📁 ' + (d.filename || 'dataset');
+
+  document.getElementById('stat-rows').textContent = fmt(d.meta.rows);
+  document.getElementById('stat-cols').textContent = d.meta.columns;
+  document.getElementById('stat-anomalies').textContent = d.anomalies.count;
+  const issueCount = Object.keys(d.validity.issues).length + Object.keys(d.consistency.issues).length;
+  document.getElementById('stat-issues').textContent = issueCount;
+
+  // Dimension cards
+  renderDimensions(d);
+  // Column table
+  renderColumnTable(d);
+  // Anomalies
+  renderAnomalies(d);
+  // Issues
+  renderIssues(d);
+  // AI Summary
+  renderAISummary(d);
+  // Export button
+  document.getElementById('export-csv-btn').onclick = () => window.location = '/export/csv/' + currentUID;
+}
+
+function scoreColor(s) {
+  if (s >= 85) return '#10b981';
+  if (s >= 70) return '#00d9ff';
+  if (s >= 50) return '#f59e0b';
+  return '#ef4444';
+}
+
+function fmt(n) { return n >= 1000 ? (n/1000).toFixed(1) + 'k' : n; }
+
+function renderDimensions(d) {
+  const dims = [
+    { key: 'completeness', icon: '✓', label: 'Completeness', score: d.completeness.score,
+      detail: `${d.completeness.total_missing_cells} missing cells across ${Object.keys(d.completeness.columns).length} columns` },
+    { key: 'uniqueness', icon: '◈', label: 'Uniqueness', score: d.uniqueness.score,
+      detail: `${d.uniqueness.duplicate_rows} duplicate rows (${d.uniqueness.duplicate_pct}%)` },
+    { key: 'validity', icon: '⬡', label: 'Validity', score: d.validity.score,
+      detail: `${Object.keys(d.validity.issues).length} columns with validity issues` },
+    { key: 'consistency', icon: '≡', label: 'Consistency', score: d.consistency.score,
+      detail: `${Object.keys(d.consistency.issues).length} inconsistent columns detected` },
+    { key: 'anomaly', icon: '⚡', label: 'Anomaly-Free', score: d.anomaly_score,
+      detail: `${d.anomalies.count} anomalous rows (${d.anomalies.pct}%)` },
+  ];
+  const grid = document.getElementById('dim-grid');
+  grid.innerHTML = dims.map(dim => `
+    <div class="dim-card">
+      <div class="dim-header">
+        <span class="dim-icon">${dim.icon}</span>
+        <span class="dim-name">${dim.label}</span>
+      </div>
+      <div class="dim-score-row">
+        <span class="dim-score-num" style="color:${scoreColor(dim.score)}">${dim.score}%</span>
+        <div class="dim-bar-wrap">
+          <div class="dim-bar" style="width:${dim.score}%;background:${scoreColor(dim.score)}"></div>
+        </div>
+      </div>
+      <div class="dim-detail">${dim.detail}</div>
+    </div>
+  `).join('');
+}
+
+function renderColumnTable(d) {
+  const tbody = document.getElementById('col-tbody');
+  tbody.innerHTML = '';
+  for (const [col, stat] of Object.entries(d.column_stats)) {
+    const completeness = 100 - stat.missing_pct;
+    const statusClass = completeness >= 95 ? 'good' : completeness >= 80 ? 'warn' : 'bad';
+    const statusLabel = completeness >= 95 ? 'Good' : completeness >= 80 ? 'Warning' : 'Critical';
+    const minMax = stat.min !== undefined ? `${stat.min} / ${stat.max}` : '—';
+    const fillColor = scoreColor(completeness);
+    tbody.innerHTML += `
+      <tr>
+        <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent)">${col}</td>
+        <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${stat.dtype}</span></td>
+        <td>${stat.missing > 0 ? `<span style="color:var(--warn)">${stat.missing} (${stat.missing_pct}%)</span>` : '<span style="color:var(--accent3)">None</span>'}</td>
+        <td>
+          <div class="bar-cell">
+            <span style="font-size:12px;font-family:'DM Mono',monospace">${completeness.toFixed(1)}%</span>
+            <div class="mini-bar"><div class="mini-fill" style="width:${completeness}%;background:${fillColor}"></div></div>
+          </div>
+        </td>
+        <td>${stat.unique}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px">${minMax}</td>
+        <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+      </tr>`;
+  }
+}
+
+function renderAnomalies(d) {
+  const pill = document.getElementById('anomaly-count-pill');
+  pill.textContent = `${d.anomalies.count} anomalies detected`;
+  if (d.anomalies.count === 0) pill.style.background = 'rgba(16,185,129,0.1)', pill.style.color = 'var(--accent3)', pill.style.borderColor = 'rgba(16,185,129,0.3)';
+
+  const info = document.getElementById('anomaly-info-text');
+  if (d.anomalies.numeric_cols_used.length > 0) {
+    info.textContent = `Isolation Forest ran on ${d.anomalies.numeric_cols_used.length} numeric columns: ${d.anomalies.numeric_cols_used.slice(0,4).join(', ')}${d.anomalies.numeric_cols_used.length > 4 ? '...' : ''}`;
+  } else {
+    info.textContent = 'No numeric columns found — anomaly detection requires numeric data.';
+  }
+
+  const wrap = document.getElementById('anomaly-table-wrap');
+  if (d.anomalies.sample_rows.length === 0) {
+    wrap.innerHTML = '<p style="color:var(--muted);padding:24px;text-align:center">No anomalies detected — dataset looks clean! 🎉</p>';
+    return;
+  }
+  const cols = Object.keys(d.anomalies.sample_rows[0]).filter(k => !k.startsWith('_'));
+  const displayCols = cols.slice(0, 8);
+  wrap.innerHTML = `
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Showing top ${Math.min(d.anomalies.sample_rows.length, 10)} anomalous rows flagged by Isolation Forest:</p>
+    <div class="data-table-wrap">
+      <table>
+        <thead><tr><th>#</th>${displayCols.map(c => `<th>${c}</th>`).join('')}<th>Anomaly Score</th></tr></thead>
+        <tbody>${d.anomalies.sample_rows.map(row => `
+          <tr>
+            <td style="color:var(--danger);font-family:'DM Mono',monospace;font-size:12px">${row._row_index}</td>
+            ${displayCols.map(c => `<td style="font-size:12px">${row[c] === null || row[c] === undefined ? '<span style="color:var(--muted)">null</span>' : row[c]}</td>`).join('')}
+            <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--danger)">${typeof row._anomaly_score === 'number' ? row._anomaly_score.toFixed(4) : '—'}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderIssues(d) {
+  const container = document.getElementById('issues-container');
+  let html = '';
+
+  const sections = [
+    { title: 'Completeness Issues', icon: '✓', issues: d.completeness.columns,
+      render: (col, v) => `${v.missing} missing values (${v.pct}%)` },
+    { title: 'Validity Issues', icon: '⬡', issues: d.validity.issues,
+      render: (col, v) => Array.isArray(v) ? v.join('; ') : v },
+    { title: 'Consistency Issues', icon: '≡', issues: d.consistency.issues,
+      render: (col, v) => v },
+  ];
+
+  for (const sec of sections) {
+    const entries = Object.entries(sec.issues);
+    if (entries.length === 0) continue;
+    html += `<h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin:20px 0 10px;color:var(--muted)">${sec.icon} ${sec.title}</h4>`;
+    html += '<div class="issues-list">';
+    for (const [col, val] of entries) {
+      html += `<div class="issue-item"><div class="issue-col">${col}</div><div class="issue-desc">${sec.render(col, val)}</div></div>`;
+    }
+    html += '</div>';
+  }
+
+  if (d.uniqueness.duplicate_rows > 0) {
+    html += `<h4 style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin:20px 0 10px;color:var(--muted)">◈ Uniqueness Issues</h4>
+    <div class="issues-list">
+      <div class="issue-item"><div class="issue-col">Entire Dataset</div><div class="issue-desc">${d.uniqueness.duplicate_rows} fully duplicate rows detected (${d.uniqueness.duplicate_pct}% of total)</div></div>
+    </div>`;
+  }
+
+  if (!html) html = '<p style="color:var(--accent3);padding:24px;text-align:center">No DQ issues detected — dataset looks clean! 🎉</p>';
+  container.innerHTML = html;
+}
+
+function renderAISummary(d) {
+  // If Foundry returned a summary, display it and skip rule-based generation
+  if (d.ai_summary) {
+    const severityColors = {
+      'Critical': 'var(--danger)',
+      'High': '#f97316',
+      'Moderate': 'var(--warn)',
+      'Low': 'var(--accent3)',
+      'Review': 'var(--accent)'
+    };
+
+    const lines = d.ai_summary
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .split('\n')
+      .filter(line => line.trim() !== '');
+
+    let summaryLines = [];
+    let actionLines = [];
+    let inActions = false;
+
+    for (const line of lines) {
+      const clean = line.replace(/^\d+\.\s+/, '').trim();
+      if (clean.toLowerCase().includes('recommended action')) { inActions = true; continue; }
+      if (inActions && clean.match(/^\[/)) {
+        actionLines.push(clean);
+      } else {
+        summaryLines.push(`<p>${clean}</p>`);
+      }
+    }
+
+    document.getElementById('ai-text').innerHTML = summaryLines.join('');
+
+    const actionHTML = actionLines.map(a => {
+      const match = a.match(/^\[(.+?)\]/);
+      const tag = match ? match[1] : '';
+      const color = severityColors[tag] || 'var(--muted)';
+      const text = a.replace(/^\[.+?\]\s*/, '');
+      return `<div class="action-item"><span style="color:${color};font-weight:700;font-family:'DM Mono',monospace;font-size:11px;margin-right:6px">[${tag}]</span>${text}</div>`;
+    }).join('');
+    document.getElementById('ai-actions').innerHTML = actionHTML || '';
+    return;
+  }
+
+  const score = d.overall_score;
+  const grade = score >= 85 ? 'good overall condition' : score >= 70 ? 'acceptable condition with some areas of concern' : score >= 50 ? 'poor condition and requires attention before use' : 'seriously compromised and should not be used until remediated';
+  const hasMissing = d.completeness.total_missing_cells > 0;
+  const hasDupes = d.uniqueness.duplicate_rows > 0;
+  const hasAnomalies = d.anomalies.count > 0;
+  const hasValidity = Object.keys(d.validity.issues).length > 0;
+  const hasConsistency = Object.keys(d.consistency.issues).length > 0;
+
+  let summary = '';
+
+  // Headline
+  const headline = score >= 85 ? 'This dataset is in good shape and is suitable for use with minor housekeeping recommended.' :
+                   score >= 70 ? 'This dataset is largely usable but contains issues that should be addressed before relying on it for key decisions.' :
+                   score >= 50 ? 'This dataset has notable quality issues that pose a risk to reporting accuracy and decision-making.' :
+                   'This dataset has significant quality problems and is not recommended for use until issues are resolved.';
+
+  summary += `<p style="font-weight:600;color:var(--text);font-size:15px;margin-bottom:12px">${headline}</p>`;
+
+  // Overview paragraph
+  summary += `<p>A review of the data has been completed across ${d.meta.rows.toLocaleString()} records, scoring <strong style="color:${scoreColor(score)}">${score} out of 100</strong> — indicating the dataset is in ${grade}. `;
+
+  if (!hasMissing && !hasDupes && !hasAnomalies) {
+    summary += `No missing information, duplicate records, or unusual entries were found.</p>`;
+  } else {
+    const issues = [];
+    if (hasMissing) issues.push(`${d.completeness.total_missing_cells} pieces of missing information across ${Object.keys(d.completeness.columns).length} field${Object.keys(d.completeness.columns).length > 1 ? 's' : ''}`);
+    if (hasDupes) issues.push(`${d.uniqueness.duplicate_rows} duplicate record${d.uniqueness.duplicate_rows > 1 ? 's' : ''}`);
+    if (hasAnomalies) issues.push(`${d.anomalies.count} unusual entr${d.anomalies.count > 1 ? 'ies' : 'y'} that may warrant a closer look`);
+    summary += `The review identified ${issues.join(', and ')}.</p>`;
+  }
+
+  // Missing data
+  if (hasMissing) {
+    summary += `<p><strong>Incomplete Records:</strong> Some records are missing information. This could affect the reliability of any reports or decisions made using this data. It is recommended that the relevant teams investigate why this information is absent and fill in the gaps where possible.</p>`;
+  }
+
+  // Duplicates
+  if (hasDupes) {
+    summary += `<p><strong>Duplicate Records:</strong> ${d.uniqueness.duplicate_rows} record${d.uniqueness.duplicate_rows > 1 ? 's appear' : ' appears'} more than once in the dataset. Duplicate entries can lead to overcounting and skewed results, and should be removed before the data is used for reporting or analysis.</p>`;
+  }
+
+  // Anomalies
+  if (hasAnomalies) {
+    summary += `<p><strong>Unusual Entries:</strong> ${d.anomalies.count} record${d.anomalies.count > 1 ? 's were' : ' was'} identified as statistically unusual compared to the rest of the dataset. These may represent data entry errors, system issues, or genuinely exceptional cases. A manual review is recommended to determine whether they should be corrected or retained.</p>`;
+  } else if (d.anomalies.numeric_cols_used.length > 0) {
+    summary += `<p><strong>Unusual Entries:</strong> No unusual or outlying records were detected — the data appears consistent throughout.</p>`;
+  }
+
+  // Consistency
+  if (hasConsistency) {
+    summary += `<p><strong>Inconsistent Formatting:</strong> Some fields contain the same values entered in different formats or with inconsistent capitalisation. While this may seem minor, it can cause issues when grouping or filtering data and should be standardised.</p>`;
+  }
+
+  document.getElementById('ai-text').innerHTML = summary;
+
+  // Recommended actions in plain English
+  const actions = [];
+  if (hasMissing) {
+    const missingPct = 100 - d.completeness.score;
+    const severity = missingPct > 20 ? 'Critical' : missingPct > 5 ? 'Moderate' : 'Minor';
+    actions.push(`[${severity}] ${d.completeness.total_missing_cells} missing values found — review source system for data entry gaps and apply imputation or removal where appropriate`);
+  }
+  if (hasDupes) {
+    actions.push(`[High] ${d.uniqueness.duplicate_rows} duplicate record${d.uniqueness.duplicate_rows > 1 ? 's' : ''} detected — run a deduplication process before loading into reporting or analytics pipelines`);
+  }
+  if (hasAnomalies) {
+    actions.push(`[Review] ${d.anomalies.count} unusual record${d.anomalies.count > 1 ? 's' : ''} flagged — cross-reference against source data to confirm whether these are errors or legitimate edge cases`);
+  }
+  if (hasValidity) {
+    const cols = Object.keys(d.validity.issues).join(', ');
+    actions.push(`[Moderate] Invalid values found in: ${cols} — apply validation rules at point of entry to prevent recurrence`);
+  }
+  if (hasConsistency) {
+    const cols = Object.keys(d.consistency.issues).join(', ');
+    actions.push(`[Low] Inconsistent formatting in: ${cols} — standardise to a single format (e.g. all lowercase or title case) across the dataset`);
+  }
+  if (actions.length === 0) actions.push('No issues detected — dataset is ready for use within the validation cycle');
+
+  document.getElementById('ai-actions').innerHTML = actions.map(a => `<div class="action-item">${a}</div>`).join('');
+}
+
+// ── TABS ──
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const names = ['overview','anomalies','issues','ai'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+
+function resetApp() {
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('upload-section').style.display = 'block';
+  document.getElementById('file-input').value = '';
+  currentData = null; currentUID = null;
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
