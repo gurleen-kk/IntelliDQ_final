@@ -1,19 +1,19 @@
 # IntelliDQ — AI-Powered Data Quality Tool
-**Gurleen Kaur · Capgemini DTSP 2025**
+**Gurleen Kaur · Capgemini DTSP 2026**
 
 ## Overview
 IntelliDQ is a Flask-based web application that automates data quality (DQ) checks on uploaded CSV/Excel files. It applies rule-based DQ checks aligned to the **Government Data Quality Framework** and uses **Isolation Forest** (machine learning) for anomaly detection.
 
 ## Features
-- 📁 Drag-and-drop file upload (CSV, XLSX, XLS — up to 50MB)
-- ✓ **Completeness** — missing value detection per column
-- ◈ **Uniqueness** — duplicate row detection
-- ⬡ **Validity** — mixed type and negative value checks
-- ≡ **Consistency** — case-variant and format inconsistencies
-- ⚡ **Anomaly Detection** — Isolation Forest on numeric columns
-- 📊 Interactive dashboard with dimension scores
-- 🤖 AI-generated summary (Microsoft Foundry integration hook)
-- 📥 Export as CSV or JSON
+- Drag-and-drop file upload (CSV, XLSX, XLS — up to 50MB)
+- **Completeness** — missing value detection per column
+- **Uniqueness** — duplicate row detection
+- **Validity** — mixed type and negative value checks
+- **Consistency** — case-variant and format inconsistencies
+- **Anomaly Detection** — Isolation Forest on numeric columns
+- Interactive dashboard with dimension scores
+- AI-generated summary (Microsoft Foundry integration hook)
+- Export as CSV or JSON
 
 ## Setup & Run
 
